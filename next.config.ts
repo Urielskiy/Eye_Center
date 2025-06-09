@@ -3,24 +3,36 @@ import type {NextConfig} from 'next';
 // Get the GitHub repository name from environment or default to 'Eye_Center'
 const repoName = process.env.GITHUB_REPOSITORY_NAME || 'Eye_Center';
 
+/**
+ * @type {import('next').NextConfig}
+ */
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Basic configuration
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Configure for GitHub Pages
+  
+  // Export static HTML/CSS/JS
   output: 'export',
-  // Configure basePath and assetPrefix for GitHub Pages
-  basePath: process.env.NODE_ENV === 'production' ? `/${repoName}` : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? `/${repoName}/` : '',
-  // Disable trailing slash to ensure proper path resolution
+  
+  // GitHub Pages configuration
+  // Only apply basePath and assetPrefix in production
+  basePath: '',
+  assetPrefix: '',
+  
+  // Disable trailing slash
   trailingSlash: false,
+  
+  // Disable image optimization for static export
   images: {
     unoptimized: true,
   },
+  
+  // Generate static 404 page
+  distDir: 'out',
 };
 
 export default nextConfig;
