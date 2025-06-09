@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
   // Configure basePath and assetPrefix for GitHub Pages
   basePath: process.env.NODE_ENV === 'production' ? `/${repoName}` : '',
   assetPrefix: process.env.NODE_ENV === 'production' ? `/${repoName}/` : '',
+  // Disable trailing slash to ensure proper path resolution
+  trailingSlash: false,
   images: {
     unoptimized: true,
   },

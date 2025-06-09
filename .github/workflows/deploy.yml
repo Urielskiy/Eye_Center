@@ -28,9 +28,13 @@ jobs:
         run: npm run build
         env:
           GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+          NODE_ENV: production
           
       - name: Create .nojekyll file
         run: touch out/.nojekyll
+        
+      - name: Create CNAME file if needed
+        run: echo "urielskiy.github.io" > out/CNAME
           
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
