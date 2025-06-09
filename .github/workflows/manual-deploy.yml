@@ -1,0 +1,42 @@
+name: Manual Deploy to GitHub Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy-message:
+        description: 'Сообщение для деплоя'
+        required: true
+        default: 'Manual deployment'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with Next.js
+        run: npm run build
+
+      - name: Create .nojekyll file
+        run: touch ./out/.nojekyll
+
+      # Вместо использования action для деплоя, используем git команды напрямую
+      - name: Deploy to GitHub Pages
+        run: |
+          cd out
+          git init
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "${{ github.event.inputs.deploy-message }}"
+          git push -f https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:gh-pages
