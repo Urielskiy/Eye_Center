@@ -23,10 +23,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="uk">
+      <head>
+        <title>Тренажер швидкого читання "Око в центр"</title>
+        <meta name="description" content="Тренажер швидкого читання 'Око в центр'" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>
     </html>
   );
 }
+
