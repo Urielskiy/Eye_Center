@@ -2,10 +2,6 @@
 const nextConfig = {
   output: 'export',
   
-  // Настройка базового пути для GitHub Pages
-  basePath: '/Eye_Center',
-  assetPrefix: '/Eye_Center/',
-  
   // Disable image optimization for static export
   images: {
     unoptimized: true,
@@ -19,5 +15,12 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 };
+
+// Only apply basePath and assetPrefix for production builds (not in local development)
+if (process.env.NODE_ENV === 'production') {
+  // Настройка базового пути для GitHub Pages
+  nextConfig.basePath = '/Eye_Center';
+  nextConfig.assetPrefix = '/Eye_Center/';
+}
 
 module.exports = nextConfig;

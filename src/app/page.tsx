@@ -15,6 +15,7 @@ const MAX_WPM = 800;
 export default function Home() {
   const [text, setText] = useState('');
   const [words, setWords] = useState<string[]>([]);
+  const [allScreens, setAllScreens] = useState<string[][]>([]);
   const [wpm, setWpm] = useState(150);
   const [lineWidth, setLineWidth] = useState(3);
   const [fontSize, setFontSize] = useState('medium');
@@ -30,14 +31,50 @@ export default function Home() {
     setText(e.target.value);
   };
 
+  // Функція для розбиття тексту на екрани та рядки
+  const prepareScreens = (words: string[], wordsPerLine: number, linesPerScreen: number) => {
+    const chunkSize = wordsPerLine * linesPerScreen;
+    const screens: string[][] = [];
+    
+    for (let i = 0; i < words.length; i += chunkSize) {
+      const chunk = words.slice(i, i + chunkSize);
+      const screen: string[] = [];
+      
+      for (let j = 0; j < chunk.length; j += wordsPerLine) {
+        const rowWords = chunk.slice(j, j + wordsPerLine);
+        screen.push(rowWords.join(" "));
+      }
+      
+      screens.push(screen);
+    }
+    
+    return screens;
+  };
+
   const splitText = () => {
-    setWords(text.split(/\s+/).filter(word => word !== ''));
+    // Очищаємо текст від зайвих пробілів та розбиваємо на слова
+    const cleanedText = text.trim();
+    const wordArray = cleanedText.split(/\s+/).filter(word => word !== '');
+    setWords(wordArray);
+    
+    // Розбиваємо текст на екрани та рядки
+    const screens = prepareScreens(wordArray, lineWidth, linesPerShow);
+    setAllScreens(screens);
+    
     setWordIndex(0);
     setIsRunning(false);
     setStartTime(null);
     setTimeTaken(0);
     setScreen(2);
   };
+
+  // Ефект для оновлення екранів при зміні налаштувань
+  useEffect(() => {
+    if (words.length > 0) {
+      const screens = prepareScreens(words, lineWidth, linesPerShow);
+      setAllScreens(screens);
+    }
+  }, [lineWidth, linesPerShow, words]);
 
   useEffect(() => {
     if (isRunning && words.length > 0) {
@@ -48,15 +85,20 @@ export default function Home() {
       const intervalTime = 60000 / wpm; // Interval in milliseconds
       const intervalId = setInterval(() => {
         setWordIndex((prevIndex) => {
-          const newIndex = prevIndex + linesPerShow * lineWidth;
+          const chunkSize = lineWidth * linesPerShow;
+          const newIndex = prevIndex + chunkSize;
+          
+          // Перевірка, чи досягли кінця тексту
           if (newIndex >= words.length) {
             setIsRunning(false);
             clearInterval(intervalId);
             const endTime = Date.now();
             setTimeTaken((endTime - (startTime || endTime)) / 1000);
-            setScreen(3) // move to result screen
+            setScreen(3); // Перехід на екран результатів
             return prevIndex;
           }
+          
+          // Повертаємо новий індекс слова
           return newIndex;
         });
       }, intervalTime);
@@ -84,45 +126,20 @@ export default function Home() {
   const summary = calculateReadingSummary();
 
   const getLinesForDisplay = () => {
-    const lines: string[] = [];
-    let currentWordIndex = wordIndex;
-    for (let i = 0; i < linesPerShow; i++) {
-      const start = currentWordIndex;
-      const end = Math.min(start + lineWidth, words.length);
-      if (start < words.length) {
-        lines.push(words.slice(start, end).join(' '));
-        currentWordIndex = end; // Move the currentWordIndex to the end of the current line
-      } else {
-        break; // Stop if we're past the end of the words array
-      }
+    // Визначаємо поточний екран для відображення
+    const chunkSize = lineWidth * linesPerShow;
+    const currentScreenIndex = Math.floor(wordIndex / chunkSize);
+    
+    // Якщо екрани ще не підготовлені або індекс за межами, повертаємо порожній масив
+    if (allScreens.length === 0 || currentScreenIndex >= allScreens.length) {
+      return [];
     }
-    return lines;
+    
+    // Повертаємо рядки поточного екрану
+    return allScreens[currentScreenIndex];
   };
 
-  useEffect(() => {
-    if (!isRunning) return;
-
-    const lines = getLinesForDisplay();
-    const totalWordsInLines = lines.reduce((acc, line) => acc + line.split(' ').length, 0);
-
-    const intervalTime = 60000 / wpm; // Interval in milliseconds
-    const intervalId = setInterval(() => {
-        setWordIndex((prevIndex) => {
-            let newIndex = prevIndex + totalWordsInLines;
-            if (newIndex >= words.length) {
-                setIsRunning(false);
-                clearInterval(intervalId);
-                const endTime = Date.now();
-                setTimeTaken((endTime - (startTime || endTime)) / 1000);
-                setScreen(3) // move to result screen
-                return prevIndex;
-            }
-            return newIndex;
-        });
-    }, intervalTime);
-
-    return () => clearInterval(intervalId);
-}, [isRunning, wpm, words, startTime, lineWidth, linesPerShow]);
+  // Цей useEffect видалено, щоб уникнути дублювання логіки
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 transition-colors">

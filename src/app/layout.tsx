@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Додаток Firebase Studio',
-  description: 'Згенеровано Firebase Studio',
+  title: 'Тренажер швидкого читання "Око в центр"',
+  description: 'Тренажер швидкого читання "Око в центр"',
 };
 
 export default function RootLayout({
